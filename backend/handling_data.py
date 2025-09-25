@@ -20,14 +20,15 @@ standard_counties = {
     'BROOKLYN': 'Brooklyn',
     'BX': 'Bronx',
     'NY': 'Manhattan',
-    'R': 'Staten Island'
+    'R': 'Staten Island',
+    'Rich': 'Staten Island'
 }
-parking = pd.read_csv("data/Parking Data.csv")
+parking = pd.read_csv("data/ParkingData.csv")
 
 parking['County'] = parking['County'].replace(standard_counties)
 parking['Violation Time'] = parking['Violation Time'].str.replace('A','AM')
 parking['Violation Time'] = parking['Violation Time'].str.replace('P','PM')
-
+parking = parking[parking['Precinct'] != 0]
 def fix_time(time_str):
     substring = '00:'
     if substring in time_str:

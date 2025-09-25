@@ -11,6 +11,7 @@ Base = declarative_base()
 metadata = MetaData()
 
 parking_table = Table("parking", metadata, autoload_with=engine) 
+location_table = Table("location", metadata, autoload_with=engine)
 def get_db():
     db = SessionLocal()
     try:
