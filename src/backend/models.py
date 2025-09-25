@@ -1,4 +1,4 @@
-from db import Base, parking_table
+from backend.db import Base, parking_table
 from sqlalchemy import MetaData, Table
 
 class Parking(Base):

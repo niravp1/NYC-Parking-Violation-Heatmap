@@ -1,5 +1,5 @@
-from db import engine, SessionLocal
-from models import Parking
+from backend.db import engine, SessionLocal
+from backend.models import Parking
 
 session = SessionLocal()
 

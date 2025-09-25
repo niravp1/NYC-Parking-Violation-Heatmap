@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from db import get_db
-from models import Parking
+from backend.db import get_db
+from backend.models import Parking
 from datetime import datetime
 
 app = FastAPI()
