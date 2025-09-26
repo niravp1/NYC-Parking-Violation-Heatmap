@@ -1,10 +1,65 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from backend.db import get_db
 from backend.models import Parking, Location
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+import logging
 
 app = FastAPI()
+origins = [ 
+"http://localhost:5173" 
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins= origins,            
+    allow_credentials=True,           
+    allow_methods=["*"],              
+    allow_headers=["*"],              
+)
+
+@app.get("/heatmap_data")
+def get_heatmap_data(db: Session = Depends(get_db)):
+    """
+    Retrieves latitude, longitude, and a weight (violation count) 
+    for heatmap visualization.
+    """
+    try:
+        results = db.query(
+            Location.latitude,
+            Location.longitude,
+            Location.county,
+            func.count(Parking.precinct).label("violation_count")
+        ).join(
+            Location, Parking.precinct == Location.precinct
+        ).group_by(
+            Location.latitude, Location.longitude, Location.county
+        ).all()
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No data found for heatmap.")
+
+        heatmap_points = [
+            {
+                "lat": r.latitude,
+                "lng": r.longitude,
+                "weight": r.violation_count
+            } for r in results
+        ]
+        max_weight = max(p['weight'] for p in heatmap_points) if heatmap_points else 1
+        
+        return {
+            "max_weight": max_weight,
+            "points": heatmap_points
+        }
+
+
+
+    except Exception as e:
+        logging.error(f"Error retrieving heatmap data: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error while fetching heatmap data.")
+
 
 @app.get("/violations")
 def read_violations(issue_date: str, db: Session = Depends(get_db)):
