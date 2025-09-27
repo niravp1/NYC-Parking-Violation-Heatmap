@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, String
 from backend.db import get_db
 from backend.models import Parking, Location
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,11 +30,12 @@ def get_heatmap_data(db: Session = Depends(get_db)):
             Location.latitude,
             Location.longitude,
             Location.county,
+            Location.precinct,
             func.count(Parking.precinct).label("violation_count")
         ).join(
             Location, Parking.precinct == Location.precinct
         ).group_by(
-            Location.latitude, Location.longitude, Location.county
+            Location.latitude, Location.longitude, Location.precinct
         ).all()
 
         if not results:
@@ -44,6 +45,7 @@ def get_heatmap_data(db: Session = Depends(get_db)):
             {
                 "lat": r.latitude,
                 "lng": r.longitude,
+                "precinct": r.precinct,
                 "weight": r.violation_count
             } for r in results
         ]
@@ -85,4 +87,72 @@ def read_locations(precinct: int, db: Session = Depends(get_db)):
         "county": result.county,
         "latitude": result.latitude,
         "longitude": result.longitude
+    }
+def format_military_hour(hour_str):
+    """Converts a 2-character hour string ('09', '17') to '9 AM', '5 PM', etc."""
+    if not hour_str: return "N/A"
+    try:
+        hour = int(hour_str) 
+        if hour == 0: 
+            return "12 AM (Midnight)"
+        elif hour < 12: 
+            return f"{hour} AM"
+        elif hour == 12: 
+            return "12 PM (Noon)"
+        else: 
+            return f"{hour - 12} PM"
+    except ValueError:
+        return "N/A"
+@app.get("/precinct_summary/{precinct_id}")
+def get_precinct_summary(precinct_id: int, db: Session = Depends(get_db)):
+    location = db.query(Location).filter(Location.precinct == precinct_id).first()
+    
+    summary_precinct = precinct_id
+    summary_county = location.county if location else "Unknown County"
+
+
+    total_violations = db.query(func.count(Parking.precinct)).filter(
+        Parking.precinct == precinct_id
+    ).scalar()
+
+    if total_violations == 0:
+        raise HTTPException(status_code=404, detail=f"No violations found for precinct {precinct_id}")
+
+
+    top_violations_query = db.query(
+        Parking.violation,
+        func.count(Parking.violation).label("violation_count")
+    ).filter(
+        Parking.precinct == precinct_id
+    ).group_by(
+        Parking.violation
+    ).order_by(
+        func.count(Parking.violation).desc()
+    ).limit(3).all()
+
+    top_violations = [
+        {"description": v.violation, "count": v.violation_count}
+        for v in top_violations_query
+    ]
+    
+
+    most_common_hour_query = db.query(
+        func.substr(Parking.violation_time, 1, 2).label('hour'),
+        func.count(func.substr(Parking.violation_time, 1, 2)).label('hour_count')
+    ).filter(
+        Parking.precinct == precinct_id
+    ).group_by(
+        'hour'
+    ).order_by(
+        func.count(func.substr(Parking.violation_time, 1, 2)).desc()
+    ).first()
+    
+    most_common_time = format_military_hour(most_common_hour_query.hour) if most_common_hour_query else "N/A"
+
+    return {
+        "precinct": summary_precinct,
+        "county": summary_county,
+        "total_violations": total_violations,
+        "top_violations": top_violations,
+        "most_common_time": most_common_time
     }

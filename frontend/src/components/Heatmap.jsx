@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useRef } from "react"
+import { InteractiveMarkers } from "./Markers";
 import api from "../api"
+
 const Heatmap = () => {
     const [heatmapData, setHeatmapData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [rawPointsData, setRawPointsData] = useState([]); 
+    const [maxWeight, setMaxWeight] = useState(1); 
+    const [totalMapViolations, setTotalMapViolations] = useState(0); 
     const mapRef = useRef(null);
     const heatLayerRef = useRef(null);
 
@@ -14,6 +18,10 @@ const Heatmap = () => {
                 const response = await api.get("/heatmap_data");
                 const rawPoints = response.data.points;
                 const maxWeight = response.data.max_weight;
+                const totalViolations = rawPoints.reduce((sum, p) => sum + p.weight, 0);
+                setRawPointsData(rawPoints);
+                setTotalMapViolations(totalViolations);
+
                 const formattedData = rawPoints.map(point => [
                     point.lat, 
                     point.lng, 
@@ -45,7 +53,7 @@ const Heatmap = () => {
         if (!mapRef.current) {
             const nyc_coords = [40.730610, -73.935242];
 
-            mapRef.current = L.map('map-container').setView(nyc_coords, 14); // 10 is the zoom level
+            mapRef.current = L.map('map-container').setView(nyc_coords, 14);
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -88,6 +96,11 @@ const Heatmap = () => {
                 {!loading && heatmapData.length === 0 && !error && (
                     <p>No violation data to display for heatmap.</p>
                 )}
+                <InteractiveMarkers
+                mapRef={mapRef}
+                rawPointsData={rawPointsData}
+                totalMapViolations={totalMapViolations}
+                />
             </div>
         </div>
     );
