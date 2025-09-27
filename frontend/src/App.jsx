@@ -3,8 +3,8 @@ import Heatmap from "./components/Heatmap"
 
 function App() {
   return (
-    <div>
-      <h3>NYC Parking Violations</h3>
+    <div style={{textAlign: 'center'}}>
+      <h3>New York Parking Violations By Precinct</h3>
       <Heatmap />
     </div>
   );

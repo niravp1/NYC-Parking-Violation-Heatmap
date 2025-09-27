@@ -19,14 +19,50 @@ app.add_middleware(
     allow_headers=["*"],              
 )
 
+def format_military_hour(hour_str):
+    """Converts a 2-character hour string ('09', '17') to '9 AM', '5 PM', etc."""
+    if not hour_str: return "N/A"
+    try:
+        hour = int(hour_str) 
+        if hour == 0: 
+            return "12 AM (Midnight)"
+        elif hour < 12: 
+            return f"{hour} AM"
+        elif hour == 12: 
+            return "12 PM (Noon)"
+        else: 
+            return f"{hour - 12} PM"
+    except ValueError:
+        return "N/A"
+
+def get_most_common_hour_per_precinct(db: Session, precinct_id: int):
+    """
+    Finds the most common hour of violation for a specific precinct.
+    Returns the hour (string '00' to '23') or None.
+    """
+    # NOTE: Parking.violation_time is assumed to be a character varying (string) type
+    most_common_hour_query = db.query(
+        func.substr(Parking.violation_time, 1, 2).label('hour'),
+        func.count(func.substr(Parking.violation_time, 1, 2)).label('hour_count')
+    ).filter(
+        Parking.precinct == precinct_id
+    ).group_by(
+        'hour'
+    ).order_by(
+        func.count(func.substr(Parking.violation_time, 1, 2)).desc()
+    ).first()
+    
+    return most_common_hour_query.hour if most_common_hour_query else None
+
+
 @app.get("/heatmap_data")
-def get_heatmap_data(db: Session = Depends(get_db)):
+def get_heatmap_data(hour: int | None = None, db: Session = Depends(get_db)):
     """
     Retrieves latitude, longitude, and a weight (violation count) 
     for heatmap visualization.
     """
     try:
-        results = db.query(
+        query = db.query(
             Location.latitude,
             Location.longitude,
             Location.county,
@@ -34,21 +70,31 @@ def get_heatmap_data(db: Session = Depends(get_db)):
             func.count(Parking.precinct).label("violation_count")
         ).join(
             Location, Parking.precinct == Location.precinct
-        ).group_by(
+        )
+        if hour is not None and 0 <= hour <= 23:
+            hour_str = f"{hour:02d}"
+            # This is where the time filtering happens, reducing the dataset BEFORE grouping
+            query = query.filter(
+                func.substr(Parking.violation_time, 1, 2) == hour_str
+            )
+        results = query.group_by(
             Location.latitude, Location.longitude, Location.precinct
         ).all()
-
         if not results:
             raise HTTPException(status_code=404, detail="No data found for heatmap.")
+        
+        heatmap_points = []
+        for r in results:
+            
+            most_common_hour = get_most_common_hour_per_precinct(db, r.precinct)
 
-        heatmap_points = [
-            {
+            heatmap_points.append({
                 "lat": r.latitude,
                 "lng": r.longitude,
                 "precinct": r.precinct,
-                "weight": r.violation_count
-            } for r in results
-        ]
+                "weight": r.violation_count,
+                "common_hour": most_common_hour 
+            })
         max_weight = max(p['weight'] for p in heatmap_points) if heatmap_points else 1
         
         return {
@@ -88,21 +134,7 @@ def read_locations(precinct: int, db: Session = Depends(get_db)):
         "latitude": result.latitude,
         "longitude": result.longitude
     }
-def format_military_hour(hour_str):
-    """Converts a 2-character hour string ('09', '17') to '9 AM', '5 PM', etc."""
-    if not hour_str: return "N/A"
-    try:
-        hour = int(hour_str) 
-        if hour == 0: 
-            return "12 AM (Midnight)"
-        elif hour < 12: 
-            return f"{hour} AM"
-        elif hour == 12: 
-            return "12 PM (Noon)"
-        else: 
-            return f"{hour - 12} PM"
-    except ValueError:
-        return "N/A"
+
 @app.get("/precinct_summary/{precinct_id}")
 def get_precinct_summary(precinct_id: int, db: Session = Depends(get_db)):
     location = db.query(Location).filter(Location.precinct == precinct_id).first()
@@ -134,20 +166,8 @@ def get_precinct_summary(precinct_id: int, db: Session = Depends(get_db)):
         {"description": v.violation, "count": v.violation_count}
         for v in top_violations_query
     ]
-    
-
-    most_common_hour_query = db.query(
-        func.substr(Parking.violation_time, 1, 2).label('hour'),
-        func.count(func.substr(Parking.violation_time, 1, 2)).label('hour_count')
-    ).filter(
-        Parking.precinct == precinct_id
-    ).group_by(
-        'hour'
-    ).order_by(
-        func.count(func.substr(Parking.violation_time, 1, 2)).desc()
-    ).first()
-    
-    most_common_time = format_military_hour(most_common_hour_query.hour) if most_common_hour_query else "N/A"
+    most_common_hour_code = get_most_common_hour_per_precinct(db, precinct_id)
+    most_common_time = format_military_hour(most_common_hour_code) 
 
     return {
         "precinct": summary_precinct,

@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useRef } from "react"
 import { InteractiveMarkers } from "./Markers";
 import api from "../api"
-
 const Heatmap = () => {
     const [heatmapData, setHeatmapData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [rawPointsData, setRawPointsData] = useState([]); 
-    const [maxWeight, setMaxWeight] = useState(1); 
-    const [totalMapViolations, setTotalMapViolations] = useState(0); 
+    const [rawPointsData, setRawPointsData] = useState([]);
+    const [maxWeight, setMaxWeight] = useState(1);
+    const [totalMapViolations, setTotalMapViolations] = useState(0);
     const mapRef = useRef(null);
     const heatLayerRef = useRef(null);
 
@@ -23,9 +22,9 @@ const Heatmap = () => {
                 setTotalMapViolations(totalViolations);
 
                 const formattedData = rawPoints.map(point => [
-                    point.lat, 
-                    point.lng, 
-                    point.weight / 750 
+                    point.lat,
+                    point.lng,
+                    point.weight / 750
                 ]);
                 setHeatmapData(formattedData);
                 setError(null);
@@ -38,11 +37,12 @@ const Heatmap = () => {
         };
 
         fetchHeatmapData();
-    }, []); 
+    }, []);
+    const geocoderRef = useRef(null);
     useEffect(() => {
 
         if (loading || error) {
-            return; 
+            return;
         }
 
         if (typeof L === 'undefined') {
@@ -85,21 +85,40 @@ const Heatmap = () => {
 
         }
 
-    }, [heatmapData, loading, error]); 
+        if (!geocoderRef.current) {
+            geocoderRef.current = L.Control.geocoder({
+                defaultMarkGeocode: false,
+                collapsed: true,
+                placeholder: 'Search for address or place...',
+            })
+                .on('markgeocode', function (e) {
+                    const bbox = e.geocode.bbox;
+                    const poly = L.polygon([
+                        bbox.getSouthEast(),
+                        bbox.getNorthEast(),
+                        bbox.getNorthWest(),
+                        bbox.getSouthWest()
+                    ]).addTo(mapRef.current);
+
+                    mapRef.current.fitBounds(poly.getBounds());
+                    mapRef.current.removeLayer(poly);
+                })
+                .addTo(mapRef.current);
+        }
+    }, [heatmapData, loading, error]);
 
     return (
-        <div style={{ height: '90vh', width: '90vw', marginLeft: '4vw'}}>
+        <div style={{ height: '90vh', width: '90vw', marginLeft: '4vw' }}>
             {loading && <p>Loading map data...</p>}
             {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-            {/* The map will be rendered into this div by Leaflet */}
             <div id="map-container" style={{ height: '100%', width: '100%' }}>
                 {!loading && heatmapData.length === 0 && !error && (
                     <p>No violation data to display for heatmap.</p>
                 )}
                 <InteractiveMarkers
-                mapRef={mapRef}
-                rawPointsData={rawPointsData}
-                totalMapViolations={totalMapViolations}
+                    mapRef={mapRef}
+                    rawPointsData={rawPointsData}
+                    totalMapViolations={totalMapViolations}
                 />
             </div>
         </div>
