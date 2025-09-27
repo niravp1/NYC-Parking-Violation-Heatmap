@@ -88,7 +88,7 @@ const Heatmap = () => {
     }, [heatmapData, loading, error]); 
 
     return (
-        <div style={{ height: '90vh', width: '90vw' }}>
+        <div style={{ height: '90vh', width: '90vw', marginLeft: '4vw'}}>
             {loading && <p>Loading map data...</p>}
             {error && <p style={{ color: 'red' }}>Error: {error}</p>}
             {/* The map will be rendered into this div by Leaflet */}
