@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import { InteractiveMarkers } from "./Markers";
 import api from "../api"
+
 const Heatmap = () => {
     const [heatmapData, setHeatmapData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -8,8 +9,11 @@ const Heatmap = () => {
     const [rawPointsData, setRawPointsData] = useState([]);
     const [maxWeight, setMaxWeight] = useState(1);
     const [totalMapViolations, setTotalMapViolations] = useState(0);
+
     const mapRef = useRef(null);
     const heatLayerRef = useRef(null);
+    const geocoderRef = useRef(null);
+    const searchMarkerRef = useRef(null); // track the search marker
 
     useEffect(() => {
         const fetchHeatmapData = async () => {
@@ -38,12 +42,9 @@ const Heatmap = () => {
 
         fetchHeatmapData();
     }, []);
-    const geocoderRef = useRef(null);
-    useEffect(() => {
 
-        if (loading || error) {
-            return;
-        }
+    useEffect(() => {
+        if (loading || error) return;
 
         if (typeof L === 'undefined') {
             console.error("Leaflet not loaded. Check index.html scripts.");
@@ -60,20 +61,17 @@ const Heatmap = () => {
             }).addTo(mapRef.current);
         }
 
-
-
-
         if (mapRef.current && heatmapData.length > 0) {
             if (heatLayerRef.current) {
                 mapRef.current.removeLayer(heatLayerRef.current);
             }
 
             const customGradient = {
-                '0.0': 'blue',    // Start with blue for low count
-                '0.4': 'lime',    // Transition to lime green
-                '0.6': 'yellow',  // Transition to yellow
-                '0.8': 'orange',  // Transition to orange
-                '1.0': 'red'      // End with red for max count
+                '0.0': 'blue',
+                '0.4': 'lime',
+                '0.6': 'yellow',
+                '0.8': 'orange',
+                '1.0': 'red'
             };
 
             heatLayerRef.current = L.heatLayer(heatmapData, {
@@ -82,26 +80,30 @@ const Heatmap = () => {
                 maxZoom: 17,
                 gradient: customGradient
             }).addTo(mapRef.current);
-
         }
 
         if (!geocoderRef.current) {
+            const arrowIcon = L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", // arrow/pin icon
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            });
+
             geocoderRef.current = L.Control.geocoder({
                 defaultMarkGeocode: false,
                 collapsed: true,
                 placeholder: 'Search for address or place...',
             })
                 .on('markgeocode', function (e) {
-                    const bbox = e.geocode.bbox;
-                    const poly = L.polygon([
-                        bbox.getSouthEast(),
-                        bbox.getNorthEast(),
-                        bbox.getNorthWest(),
-                        bbox.getSouthWest()
-                    ]).addTo(mapRef.current);
+                    const latlng = e.geocode.center;
 
-                    mapRef.current.fitBounds(poly.getBounds());
-                    mapRef.current.removeLayer(poly);
+                    if (searchMarkerRef.current) {
+                        mapRef.current.removeLayer(searchMarkerRef.current);
+                    }
+
+                    searchMarkerRef.current = L.marker(latlng, { icon: arrowIcon }).addTo(mapRef.current);
+
+                    mapRef.current.setView(latlng, 16);
                 })
                 .addTo(mapRef.current);
         }
@@ -125,4 +127,4 @@ const Heatmap = () => {
     );
 };
 
-export default Heatmap; 
+export default Heatmap;
