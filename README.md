@@ -62,6 +62,36 @@ The app provides a heatmap of violations and interactive precinct markers with d
   - Top 3 violation types
   - Most common violation hour
 
+
+### Frontend (React + Leaflet.js)
+
+**Dependencies:**
+
+- `react`  
+- `react-dom`  
+- `axios` (or your custom `api.js`)  
+- `leaflet`  
+- `react-leaflet` (optional if using React integration)  
+
+**Components:**
+
+- `Heatmap.jsx`  
+  - Renders the heatmap based on `/heatmap_data`.  
+  - Configures colors, radius, and opacity.  
+
+- `InteractiveMarkers.jsx`  
+  - Adds hoverable markers with detailed precinct statistics using `/precinct_summary/{precinct_id}`.  
+  - Popups display top violations and the most common hour.  
+
+- `App.jsx`  
+  - Main component that includes the `Heatmap` component and other UI elements.  
+
+**Notes:**
+
+- Frontend communicates with FastAPI backend via REST API calls.  
+- Leaflet renders map tiles and overlays heatmap and markers.  
+- API requests are proxied to `http://localhost:8000` (or your backend URL).  
+
 ## Usage
 
 To start the project, just run the following command from the project root directory:
