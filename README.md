@@ -1,39 +1,64 @@
-This project provides an interactive map interface for analyzing NYC parking violations. It allows users to:
+# NYC Parking Violations Visualization
 
-View a heatmap of violation density across precincts.
+A full-stack application for visualizing parking violations in New York City using **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **React**, and **Leaflet.js**.  
+The app provides a heatmap of violations and interactive precinct markers with detailed summaries.
 
-Hover over precincts to see precinct-specific statistics:
+---
 
-#Total violations
+## Features
 
-Most common violations
+- **Heatmap visualization** of parking violations across NYC.
+- **Interactive markers** per precinct showing:
+  - Total violations
+  - Top 3 violation types
+  - Most common violation hour
+- **RESTful API** for retrieving violation data.
+- **Frontend** built with React and Leaflet.js.
 
-Most frequent violation time
+---
 
-Filter and query data dynamically via the backend API.
+## Project Structure
 
-The application emphasizes backend data processing, using FastAPI and SQLAlchemy to efficiently query PostgreSQL while keeping the frontend lightweight.
+## Database
 
-#Features
+**PostgreSQL tables:**
 
-Interactive heatmap: Visualizes violation density with custom gradients.
+- `parking`  
+  - Columns: `id`, `issue_date`, `violation_time`, `violation_description`, `precinct`, `county`  
+- `location`  
+  - Columns: `precinct`, `county`, `latitude`, `longitude`  
 
-Hoverable precinct markers: Show detailed statistics dynamically fetched from the backend.
+> Tables are reflected using SQLAlchemy, so existing database structures are mapped to Python objects without recreating tables.
 
-Date-based queries: Filter violations by date.
+---
 
-Clean data handling: Preprocessed violation data for consistent time and format handling.
+## Backend (FastAPI)
 
-Zoom-independent visual cues: Fixed-weight representation of violations (optional via circles).
+**Dependencies:**
 
-Tech Stack
+- `fastapi`
+- `sqlalchemy`
+- `psycopg2-binary`
+- `uvicorn`
 
-Backend: Python, FastAPI, SQLAlchemy
+**Endpoints:**
 
-Database: PostgreSQL
+- `/heatmap_data`  
+  Returns latitude, longitude, and violation count for the heatmap.
 
-Frontend: React.js, Leaflet.js
+- `/violations?issue_date=MM/DD/YYYY`  
+  Returns up to 5 violations for the given date.
 
-APIs: RESTful endpoints with JSON responses
+- `/location?precinct=<id>`  
+  Returns latitude, longitude, and county for a precinct.
 
-Styling: CSS and Leaflet custom gradients
+- `/precinct_summary/{precinct_id}`  
+  Returns detailed statistics for a precinct:
+  - Total violations
+  - Top 3 violation types
+  - Most common violation hour
+
+## Usage
+
+```bash
+docker-compose up --build
