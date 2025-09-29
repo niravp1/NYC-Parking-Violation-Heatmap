@@ -1,19 +1,21 @@
 # NYC Parking Violations Visualization
 
-A full-stack application for visualizing parking violations in New York City using **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **React**, and **Leaflet.js**.  
-The app provides a heatmap of violations and interactive precinct markers with detailed summaries.
+A full-stack application designed to provide insights into parking violations across New York City. By visualizing patterns in violations, the app helps city planners, traffic authorities, and researchers identify high-risk areas, understand trends, and make data-driven decisions for urban planning and enforcement.
+The application is built using **FastAPI** for the backend, **PostgreSQL** for data storage, **SQLAlchemy** for ORM and database reflection, **React** for the frontend, and **Leaflet.js** for interactive mapping.  
+It features a heatmap of violations and interactive precinct markers that display detailed summaries, including total violations, top violation types, and the most common violation hours.
 
 ---
 
 ## Features
 
 - **Heatmap visualization** of parking violations across NYC.
+-  **Frontend** built with React and Leaflet.js.
+- **RESTful API** for retrieving violation data.
 - **Interactive markers** per precinct showing:
   - Total violations
   - Top 3 violation types
   - Most common violation hour
-- **RESTful API** for retrieving violation data.
-- **Frontend** built with React and Leaflet.js.
+
 
 <div align="center">
   <img src="https://github.com/user-attachments/assets/0756e57d-43e1-4742-9be3-13d1296a0eab" alt="Screenshot" width="800"/>
