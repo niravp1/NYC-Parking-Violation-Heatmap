@@ -2,6 +2,15 @@ import React, { useEffect, useState, useRef } from "react"
 import { InteractiveMarkers } from "./Markers";
 import api from "../api"
 
+if (typeof L !== "undefined") {
+  Object.defineProperty(MouseEvent.prototype, "mozInputSource", {
+    get() { return this.pointerType; },
+  });
+
+  Object.defineProperty(MouseEvent.prototype, "mozPressure", {
+    get() { return this.pressure; },
+  });
+}
 const Heatmap = () => {
     const [heatmapData, setHeatmapData] = useState([]);
     const [loading, setLoading] = useState(true);
