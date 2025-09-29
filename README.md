@@ -15,7 +15,9 @@ The app provides a heatmap of violations and interactive precinct markers with d
 - **RESTful API** for retrieving violation data.
 - **Frontend** built with React and Leaflet.js.
 
-![2025-09-29 15-43-19 (online-video-cutter com)(1)](https://github.com/user-attachments/assets/667b14f2-1c5a-4647-b899-5a300080510a)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/0756e57d-43e1-4742-9be3-13d1296a0eab" alt="Screenshot" width="800"/>
+</div>
 
 ---
 
