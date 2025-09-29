@@ -1,8 +1,9 @@
 # NYC Parking Violations Visualization
 
 A full-stack application designed to provide insights into parking violations across New York City. By visualizing patterns in violations, the app helps city planners, traffic authorities, and researchers identify high-risk areas, understand trends, and make data-driven decisions for urban planning and enforcement.
+
 The application is built using **FastAPI** for the backend, **PostgreSQL** for data storage, **SQLAlchemy** for ORM and database reflection, **React** for the frontend, and **Leaflet.js** for interactive mapping.  
-It features a heatmap of violations and interactive precinct markers that display detailed summaries, including total violations, top violation types, and the most common violation hours.
+It features a heatmap of violations and interactive precinct markers that display detailed summaries, including the total number of violations, the top violation types, and the most common violation hours.
 
 ---
 
