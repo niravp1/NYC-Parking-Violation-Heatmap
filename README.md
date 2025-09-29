@@ -15,6 +15,7 @@ The app provides a heatmap of violations and interactive precinct markers with d
 - **RESTful API** for retrieving violation data.
 - **Frontend** built with React and Leaflet.js.
 
+![2025-09-29 15-43-19 (online-video-cutter com)](https://github.com/user-attachments/assets/464c0a95-3974-48ac-8466-e2dc69a2d495)
 
 ---
 
@@ -61,7 +62,7 @@ The app provides a heatmap of violations and interactive precinct markers with d
 
 ## Usage
 
-To start the project, run the following command from the project root directory:
+To start the project, just run the following command from the project root directory:
 
 ```bash
 docker-compose up --build
