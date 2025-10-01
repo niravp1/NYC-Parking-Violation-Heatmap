@@ -96,7 +96,7 @@ The application is built using **FastAPI** for the backend, **PostgreSQL** for d
 
 ## Usage
 
-To start the project, just run the following command from the project root directory:
+To start the project, after cloning, just run the following command from the project root directory:
 
 ```bash
 docker-compose up --build
