@@ -92,7 +92,7 @@ The application is built using **FastAPI** for the backend, **PostgreSQL** for d
 
 - Frontend communicates with FastAPI backend via REST API calls.  
 - Leaflet renders map tiles and overlays heatmap and markers.  
-- API requests are proxied to `http://localhost:8000` (or your backend URL).  
+- API requests are proxied to `http://localhost:8000`.  
 
 ## Usage
 
