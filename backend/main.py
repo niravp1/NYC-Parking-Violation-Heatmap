@@ -9,7 +9,7 @@ import logging
 
 app = FastAPI()
 origins = [ 
-"http://localhost:5173" 
+'http://localhost:5173'
 ]
 app.add_middleware(
     CORSMiddleware,
