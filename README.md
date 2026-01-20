@@ -36,7 +36,7 @@ The application is built using **FastAPI** for the backend, **PostgreSQL** for d
 
 > Tables are reflected using SQLAlchemy, so existing database structures are mapped to Python objects without recreating tables.
 
----
+
 
 ## Backend (FastAPI)
 
